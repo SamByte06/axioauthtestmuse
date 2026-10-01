@@ -16,6 +16,10 @@ build/
 .env
 .env.local
 .env.*.local
+
+# This local file contains only the non-secret demo-mode flag.
+!authority-frontend/.env.local
+
 *.pem
 *.key
 
