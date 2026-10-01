@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AxioVital Authority — global baseline.
+ * Dense enterprise console: tabular numbers for identifiers,
+ * visible focus everywhere, no decorative noise. */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Identifiers (AXP-…, AXO-…, correlation IDs) render in tabular mono. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Visible focus for keyboard operators — never remove. */
+  :focus-visible {
+    outline: 2px solid theme("colors.brand.600");
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: theme("colors.brand.100");
+  }
+}
+
+/* Thin, unobtrusive scrollbars for dense tables */
+@layer utilities {
+  .scroll-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: theme("colors.slate.300");
+    border-radius: 4px;
+  }
+}
+
+html[data-table-density="compact"] table th,
+html[data-table-density="compact"] table td {
+  padding-block: 0.5rem !important;
+  padding-inline: 0.75rem !important;
+}
+
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
