@@ -27,3 +27,5 @@ export { AxioMetricCard } from "./AxioMetricCard";
 export { AxioTimeline } from "./AxioTimeline";
 export type { TimelineItem } from "./AxioTimeline";
 export { AxioAuditTable } from "./AxioAuditTable";
+export { AxioIdDisplay, isStandardId } from "./AxioIdDisplay";
+export type { AxioIdDisplayProps } from "./AxioIdDisplay";
