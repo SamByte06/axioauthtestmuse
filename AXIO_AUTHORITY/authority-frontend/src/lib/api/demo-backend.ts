@@ -151,6 +151,48 @@ function buildFixtures(): DemoStore {
         createdAt: t0,
         updatedAt: t0,
       },
+      {
+        id: "AXP-DL-GH0001",
+        organizationName: "AxioVital General Hospital",
+        partnerType: "HOSPITAL",
+        state: "DL",
+        country: "India",
+        isolationMode: "DEDICATED_DATABASE",
+        status: "ACTIVE",
+        operatorCount: 1,
+        tenantId: "11111111-1111-1111-1111-111111111111",
+        testFixture: false,
+        createdAt: "2026-08-11T13:40:00.000Z",
+        updatedAt: "2026-08-11T19:47:58.000Z",
+      },
+      {
+        id: "AXP-MP-BP0001",
+        organizationName: "AxioVital City General Hospital",
+        partnerType: "HOSPITAL",
+        state: "MP",
+        country: "India",
+        isolationMode: "SHARED",
+        status: "ACTIVE",
+        operatorCount: 1,
+        tenantId: "00000000-0000-0000-0000-000000000101",
+        testFixture: false,
+        createdAt: "2026-11-03T00:37:00.000Z",
+        updatedAt: "2026-11-03T00:37:00.000Z",
+      },
+      {
+        id: "AXP-MP-IN0002",
+        organizationName: "AxioVital Metropolitan Medical Centre",
+        partnerType: "HOSPITAL",
+        state: "MP",
+        country: "India",
+        isolationMode: "SHARED",
+        status: "ACTIVE",
+        operatorCount: 1,
+        tenantId: "00000000-0000-0000-0000-000000000102",
+        testFixture: false,
+        createdAt: "2026-11-03T00:37:00.000Z",
+        updatedAt: "2026-11-03T00:37:00.000Z",
+      },
     ],
     tenants: [
       {
@@ -209,6 +251,63 @@ function buildFixtures(): DemoStore {
         createdAt: t0,
         updatedAt: t0,
       },
+      {
+        id: "11111111-1111-1111-1111-111111111111",
+        partnerId: "AXP-DL-GH0001",
+        organizationName: "AxioVital General Hospital",
+        region: "ap-south-1",
+        isolationMode: "DEDICATED_DATABASE",
+        lifecycle: "ACTIVE",
+        provisioningStatus: {
+          state: "COMPLETED",
+          startedAt: "2026-08-11T13:40:00.000Z",
+          completedAt: "2026-08-11T13:42:00.000Z",
+          correlationId: "AX-REQ-CLIENT-GH01",
+          message: "Dedicated tenant database live. Connected client: AxioVital Desktop.",
+        },
+        operatorCount: 1,
+        status: "ACTIVE",
+        createdAt: "2026-08-11T13:40:00.000Z",
+        updatedAt: "2026-08-11T19:47:58.000Z",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000101",
+        partnerId: "AXP-MP-BP0001",
+        organizationName: "AxioVital City General Hospital",
+        region: "ap-south-1",
+        isolationMode: "SHARED",
+        lifecycle: "ACTIVE",
+        provisioningStatus: {
+          state: "COMPLETED",
+          startedAt: "2026-11-03T00:37:00.000Z",
+          completedAt: "2026-11-03T00:37:00.000Z",
+          correlationId: "AX-REQ-SEED-BHP01",
+          message: "Central database tenant provisioned and active.",
+        },
+        operatorCount: 1,
+        status: "ACTIVE",
+        createdAt: "2026-11-03T00:37:00.000Z",
+        updatedAt: "2026-11-03T00:37:00.000Z",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000102",
+        partnerId: "AXP-MP-IN0002",
+        organizationName: "AxioVital Metropolitan Medical Centre",
+        region: "ap-south-1",
+        isolationMode: "SHARED",
+        lifecycle: "ACTIVE",
+        provisioningStatus: {
+          state: "COMPLETED",
+          startedAt: "2026-11-03T00:37:00.000Z",
+          completedAt: "2026-11-03T00:37:00.000Z",
+          correlationId: "AX-REQ-SEED-IND02",
+          message: "Central database tenant provisioned and active.",
+        },
+        operatorCount: 1,
+        status: "ACTIVE",
+        createdAt: "2026-11-03T00:37:00.000Z",
+        updatedAt: "2026-11-03T00:37:00.000Z",
+      },
     ],
     operators: [
       {
@@ -252,6 +351,52 @@ function buildFixtures(): DemoStore {
         email: "vikram.shah@example.test",
         credentialState: "SUSPENDED",
         createdAt: t0,
+      },
+      {
+        id: "AXO-GH0001-D00001",
+        partnerId: "AXP-DL-GH0001",
+        displayName: "Dr. Sharma",
+        type: "D",
+        status: "ACTIVE",
+        email: "dr.sharma@axiovital.com",
+        credentialState: "ACTIVE",
+        lastActiveAt: "2026-08-11T19:47:58.000Z",
+        createdAt: "2026-08-11T13:40:00.000Z",
+        isRealUser: true,
+        clientApp: "AxioVital Desktop (v0.3.0)",
+        clientPlatform: "Windows 11 · DPAPI SecureVault",
+        organizationName: "AxioVital General Hospital",
+        userSource: "MAIN_SOFTWARE_CLIENT",
+      },
+      {
+        id: "AXO-BP0001-A00001",
+        partnerId: "AXP-MP-BP0001",
+        displayName: "Bhopal City General Administrator",
+        type: "A",
+        status: "ACTIVE",
+        email: "admin.hospital001@axiovital.local",
+        credentialState: "ACTIVE",
+        lastActiveAt: "2026-11-03T00:37:00.000Z",
+        createdAt: "2026-11-03T00:37:00.000Z",
+        isRealUser: true,
+        clientApp: "AxioVital Native Backend",
+        organizationName: "AxioVital City General Hospital",
+        userSource: "BACKEND_SEED",
+      },
+      {
+        id: "AXO-IN0002-A00001",
+        partnerId: "AXP-MP-IN0002",
+        displayName: "Indore Metro Administrator",
+        type: "A",
+        status: "ACTIVE",
+        email: "admin.hospital002@axiovital.local",
+        credentialState: "ACTIVE",
+        lastActiveAt: "2026-11-03T00:37:00.000Z",
+        createdAt: "2026-11-03T00:37:00.000Z",
+        isRealUser: true,
+        clientApp: "AxioVital Native Backend",
+        organizationName: "AxioVital Metropolitan Medical Centre",
+        userSource: "BACKEND_SEED",
       },
     ],
     credentials: [
@@ -366,7 +511,34 @@ function buildFixtures(): DemoStore {
   };
 }
 
-let store: DemoStore = buildFixtures();
+
+const STORAGE_KEY = "axiovital_authority_demo_store_v2";
+
+function saveStore(): void {
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    } catch {}
+  }
+}
+
+function loadStore(): DemoStore {
+  const initial = buildFixtures();
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as DemoStore;
+        if (parsed && Array.isArray(parsed.partners) && Array.isArray(parsed.operators)) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return initial;
+}
+
+let store: DemoStore = loadStore();
 
 /** Reset the demo store to its fixtures. Demo/test use only. */
 export function resetDemoBackend(): void {
@@ -451,9 +623,29 @@ function handleLogin(body: LoginRequest | undefined): LoginResponse {
     fail(422, "DEMO_INVALID_CREDENTIALS", "Email and password are required.");
   }
   const issuedAt = nowIso();
+  const emailLower = body.email.toLowerCase().trim();
+
+  let displayName = "Demo Administrator";
+  let adminId = "demo-admin-1";
+
+  if (emailLower === "demo@example.test") {
+    displayName = "Demo Administrator";
+  } else if (emailLower.includes("dr.sharma") || emailLower.includes("sharma")) {
+    displayName = "Dr. Sharma";
+    adminId = "admin-dr-sharma";
+  } else if (emailLower.includes("sudhanshu")) {
+    displayName = "Sudhanshu Patel";
+    adminId = "admin-sudhanshu";
+  } else if (emailLower.includes("@")) {
+    const userPart = emailLower.split("@")[0] || "";
+    const words = userPart.replace(/[._-]/g, " ").trim().split(" ");
+    displayName = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Authority Administrator";
+    adminId = `admin-${userPart.replace(/[^a-z0-9]/g, "")}`;
+  }
+
   const session: AuthoritySession = {
-    administratorId: "demo-admin-1",
-    displayName: "Demo Administrator",
+    administratorId: adminId,
+    displayName,
     email: body.email,
     roles: ["SUPER_AUTHORITY_ADMIN"],
     permissions: ROLE_PERMISSIONS.SUPER_AUTHORITY_ADMIN,
@@ -461,7 +653,8 @@ function handleLogin(body: LoginRequest | undefined): LoginResponse {
     expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
   };
   store.session = session;
-  appendAudit("AUTHORITY_LOGIN_SUCCESS", session.administratorId, "SUCCESS");
+  saveStore();
+  appendAudit("AUTHORITY_LOGIN_SUCCESS", displayName, "SUCCESS");
   return { session, sessionHandle: "demo-session" };
 }
 
@@ -576,8 +769,10 @@ function handleCreatePartner(body: CreatePartnerRequest | undefined): CreatePart
   };
 
   store.partners.unshift(partner);
+  saveStore();
   store.tenants.unshift(tenant);
   store.operators.unshift(operator);
+  saveStore();
   store.credentials.unshift(credential);
 
   appendAudit("PARTNER_CREATED", partnerId, "SUCCESS", { partnerId, correlationId });

@@ -98,13 +98,18 @@ export default function LoginPage() {
               Restricted to authorized AxioVital Authority personnel.
             </p>
             {isDemoMode() && (
-              <p
+              <div
                 role="note"
-                className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
+                className="mt-4 rounded-md border border-emerald-400 bg-emerald-50/95 px-3 py-2.5 text-xs text-emerald-950 space-y-1 shadow-sm"
               >
-                Demo mode is on: any email and password signs you in as the demo
-                administrator. All data is test fixtures.
-              </p>
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-900">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Local Environment &bull; Main Software Bridge Active
+                </div>
+                <p className="text-emerald-800 text-[11px] leading-snug">
+                  Sign in with any work email. Your real identity is displayed, and real operators from the main software (e.g. <strong>Dr. Sharma</strong>) are automatically synced.
+                </p>
+              </div>
             )}
             <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
               <AxioInput

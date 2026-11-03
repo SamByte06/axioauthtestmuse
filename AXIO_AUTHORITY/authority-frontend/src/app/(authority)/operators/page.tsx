@@ -71,7 +71,24 @@ export default function OperatorsPage() {
       {
         key: "name",
         header: "Display name",
-        render: (o) => <span className="font-medium">{o.displayName}</span>,
+        render: (o) => (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-slate-900">{o.displayName}</span>
+              {o.isRealUser && (
+                <AxioBadge tone="healthy" className="text-[10px]">
+                  MAIN SOFTWARE USER
+                </AxioBadge>
+              )}
+            </div>
+            <span className="text-xs text-slate-500">{o.email}</span>
+            {o.clientApp && (
+              <span className="text-[11px] font-mono text-emerald-700">
+                {o.clientApp}
+              </span>
+            )}
+          </div>
+        ),
       },
       {
         key: "type",
@@ -104,6 +121,26 @@ export default function OperatorsPage() {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-3 w-3 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+          <div>
+            <h3 className="text-sm font-semibold text-emerald-900">
+              Main Software (AxioVital Desktop) User Sync Active
+            </h3>
+            <p className="text-xs text-emerald-700">
+              Real operators who logged into the native desktop application (such as <strong>Dr. Sharma</strong> at <strong>AxioVital General Hospital</strong>) are automatically recognized and monitored here.
+            </p>
+          </div>
+        </div>
+        <div className="text-xs font-mono bg-white/80 border border-emerald-300 rounded px-2.5 py-1 text-emerald-800">
+          Source: Windows DPAPI SecureVault
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center justify-end gap-3">
         {canCreate && (
           <AxioButton onClick={() => setCreateOpen(true)}>Create operator</AxioButton>

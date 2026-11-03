@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useApi } from "@/lib/use-api";
 import { dashboardApi } from "@/lib/api/dashboard-api";
@@ -32,6 +33,34 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-3 w-3 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-emerald-950">
+                Main Software Client Synchronized
+              </h3>
+              <span className="rounded bg-emerald-200 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900">
+                LIVE
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-emerald-800">
+              Active desktop operator session detected: <strong>Dr. Sharma</strong> (dr.sharma@axiovital.com) &bull; Hospital: <strong>AxioVital General Hospital</strong> &bull; Authenticated via Windows DPAPI SecureVault
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/operators"
+          className="rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+        >
+          View operator details &rarr;
+        </Link>
+      </div>
+
       <section aria-labelledby="network-overview">
         <h2 id="network-overview" className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
           Network overview

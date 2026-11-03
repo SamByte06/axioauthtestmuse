@@ -97,6 +97,9 @@ export default function OperatorDetailPage({
                     {operator.type} — {OPERATOR_TYPE_LABELS[operator.type]}
                   </AxioBadge>
                   <AxioBadge tone="neutral">{operator.credentialState}</AxioBadge>
+                  {operator.isRealUser && (
+                    <AxioBadge tone="healthy">MAIN SOFTWARE OPERATOR</AxioBadge>
+                  )}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -126,6 +129,15 @@ export default function OperatorDetailPage({
                   value={operator.lastActiveAt ? new Date(operator.lastActiveAt).toLocaleString() : "—"}
                 />
                 <DetailRow label="Created" value={new Date(operator.createdAt).toLocaleString()} />
+                {operator.organizationName && (
+                  <DetailRow label="Organization" value={operator.organizationName} />
+                )}
+                {operator.clientApp && (
+                  <DetailRow label="Main Software Client" value={operator.clientApp} />
+                )}
+                {operator.clientPlatform && (
+                  <DetailRow label="Credential Platform" value={operator.clientPlatform} />
+                )}
               </dl>
               <Link
                 href={`/credentials?operatorId=${encodeURIComponent(operator.id)}`}

@@ -79,7 +79,31 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-4 text-xs">
+        <div className="ml-auto flex shrink-0 items-center gap-3 text-xs">
+          {session && (
+            <div className="hidden sm:flex items-center gap-2 rounded-full border border-authority-700/80 bg-authority-800/80 py-1 pl-1 pr-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 font-semibold text-white shadow-sm text-xs">
+                {session.displayName
+                  .split(" ")
+                  .map((w) => w[0])
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()}
+              </span>
+              <div className="flex flex-col text-left">
+                <span className="font-medium text-white leading-tight">
+                  {session.displayName}
+                </span>
+                <span className="text-[10px] text-authority-300 leading-tight">
+                  {session.email}
+                </span>
+              </div>
+              <span className="ml-1 rounded bg-authority-700 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-authority-200">
+                {session.roles[0]?.replace("SUPER_AUTHORITY_ADMIN", "SUPER ADMIN").replace(/_/g, " ")}
+              </span>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => void logout()}
