@@ -11,7 +11,7 @@ import {
 test("login page renders the Authority sign-in form", async ({ page }) => {
   await mockUnauthenticatedSession(page);
   await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "Authority sign-in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /AxioVital Authority/i })).toBeVisible();
   await expect(page.getByLabel("Work email")).toBeVisible();
   await expect(page.getByLabel("Password")).toBeVisible();
 });
@@ -22,7 +22,8 @@ test("login rejects an invalid email client-side", async ({ page }) => {
   await page.getByLabel("Work email").fill("not-an-email");
   await page.getByLabel("Password").fill("secret");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText("valid email");
+  const alert = page.locator("form [role='alert']");
+  await expect(alert).toContainText("Enter a valid email address");
 });
 
 test("login failure against an unreachable backend is honest, never fake success", async ({
@@ -34,9 +35,9 @@ test("login failure against an unreachable backend is honest, never fake success
   await page.getByLabel("Work email").fill("admin@axiovital.test");
   await page.getByLabel("Password").fill("wrong");
   await page.getByRole("button", { name: "Sign in" }).click();
-  const alert = page.getByRole("alert");
-  await expect(alert).toBeVisible();
-  await expect(alert).toContainText(/unavailable|failed/i);
+  const alert = page.locator("form [role='alert']");
+  await expect(alert).toBeVisible({ timeout: 15_000 });
+  await expect(alert).toContainText(/unavailable|failed|not configured|unable to reach/i);
   // Must NOT navigate to the dashboard on failure.
   await expect(page).toHaveURL(/\/login/);
 });

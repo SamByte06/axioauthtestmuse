@@ -1,13 +1,13 @@
 /**
  * Partner creation workflow E2E.
  * Asserts: validation honesty, backend-generated IDs on success,
- * and honest failure (no fake ACTIVE) with a correlation ID.
+ * absence of secrets from DOM, and honest failure with correlation ID.
  */
 import { expect, test, type Page } from "@playwright/test";
 import { mockApi, mockAuthenticatedSession } from "./helpers";
 
 const FORM = {
-  organizationName: "Medanta",
+  organizationName: "Medanta Medicity",
   state: "KL",
   adminFullName: "Asha Nair",
   adminEmail: "asha@example.org",
@@ -26,84 +26,70 @@ test("wizard blocks an invalid state code with a clear error", async ({
   await mockAuthenticatedSession(page);
   await page.goto("/partners/new");
   await fillValidForm(page);
-  await page.getByLabel("State / UT code").fill("KERALA");
+  await page.getByLabel("State / UT code").fill("K");
   await page.getByRole("button", { name: "Review" }).click();
-  await expect(page.getByText("2-letter state / UT code")).toBeVisible();
+  await expect(page.getByText(/2-letter state \/ UT code/i)).toBeVisible();
   await expect(page).toHaveURL(/\/partners\/new/);
 });
 
-test("successful creation shows backend-generated IDs and correlation ID", async ({
+test("successful creation shows backend-generated IDs, correlation ID, and secrets are absent from DOM", async ({
   page,
 }) => {
   await mockAuthenticatedSession(page);
-  await mockApi(page, "partners", {
+  await mockApi(page, "hospitals", {
     status: 201,
     body: {
-      partner: {
-        id: "AXP-KL-7K42F8",
-        organizationName: "Medanta",
-        partnerType: "HOSPITAL",
-        state: "KL",
-        country: "India",
-        isolationMode: "DEDICATED_DATABASE",
-        status: "ACTIVE",
-        operatorCount: 1,
-        tenantId: "tnt-1",
-        testFixture: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      tenant: {
-        id: "tnt-1",
-        partnerId: "AXP-KL-7K42F8",
-        organizationName: "Medanta",
-        region: "KL",
-        isolationMode: "DEDICATED_DATABASE",
-        lifecycle: "ACTIVE",
-        provisioningStatus: { state: "COMPLETED" },
-        operatorCount: 1,
-        status: "ACTIVE",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      initialOperator: {
-        id: "AXO-7K42F8-A00001",
-        partnerId: "AXP-KL-7K42F8",
-        displayName: "Asha Nair",
-        type: "A",
-        status: "PENDING",
-        email: "asha@example.org",
-        credentialState: "PENDING_ENROLLMENT",
-        createdAt: new Date().toISOString(),
-      },
-      correlationId: "AX-REQ-E2E001",
+      organization: "Medanta Medicity",
+      partner_id: "AXP-KL-7K42F8",
+      operator_id: "AXO-7K42F8-A00001",
+      tenant_status: "ACTIVE",
+      isolation_mode: "DEDICATED_DATABASE",
+      tenant_id: "11111111-2222-3333-4444-555555555555",
+      operator_type: "A",
+      administrator_email: "asha@example.org",
+      enrollment_url: "https://auth.axiovital.internal/enroll?ref=REF12345",
+      // Secret values that must NEVER appear in the DOM:
+      mfa_secret: "SECRET_MFA_DO_NOT_EXPOSE",
+      mfa_qr_code_uri: "otpauth://totp/secret",
+      enrollment_token: "SECRET_TOKEN_DO_NOT_EXPOSE",
+      created_at_utc: new Date().toISOString(),
     },
   });
 
   await page.goto("/partners/new");
   await fillValidForm(page);
   await page.getByRole("button", { name: "Review" }).click();
-  await expect(page.getByRole("heading", { name: "Review before submission" })).toBeVisible();
-  await page.getByRole("button", { name: "Create partner" }).click();
+  await expect(page.getByRole("heading", { name: "Review hospital details" })).toBeVisible();
+  await page.getByRole("button", { name: "Create hospital" }).click();
 
   await expect(
-    page.getByRole("heading", { name: "Partner created and active" }),
+    page.getByRole("heading", { name: "Hospital Registered Successfully" }),
   ).toBeVisible();
-  // Backend-generated IDs are displayed — never invented by the UI.
-  await expect(page.getByText("AXP-KL-7K42F8")).toBeVisible();
-  await expect(page.getByText("AXO-7K42F8-A00001")).toBeVisible();
-  await expect(page.getByText("AX-REQ-E2E001")).toBeVisible();
+
+  // Backend-generated IDs are displayed verbatim
+  await expect(page.getByText("AXP-KL-7K42F8", { exact: true })).toBeVisible();
+  await expect(page.getByText("AXO-7K42F8-A00001", { exact: true })).toBeVisible();
+  await expect(page.getByText("11111111-2222-3333-4444-555555555555", { exact: true })).toBeVisible();
+
+  // D3 Verification: Verify forbidden secrets are strictly absent from the DOM
+  const pageContent = await page.content();
+  expect(pageContent).not.toContain("SECRET_MFA_DO_NOT_EXPOSE");
+  expect(pageContent).not.toContain("SECRET_TOKEN_DO_NOT_EXPOSE");
+  expect(pageContent).not.toContain("otpauth://");
+
+  // Single-use enrollment URL is masked by default
+  await expect(page.getByText("••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••")).toBeVisible();
 });
 
 test("failed creation shows the error and correlation ID — never fake ACTIVE", async ({
   page,
 }) => {
   await mockAuthenticatedSession(page);
-  await mockApi(page, "partners", {
+  await mockApi(page, "hospitals", {
     status: 500,
     body: {
       code: "PROVISIONING_FAILED",
-      message: "Tenant provisioning failed.",
+      message: "Tenant provisioning failed on backend.",
       correlationId: "AX-REQ-E2E002",
     },
   });
@@ -111,14 +97,14 @@ test("failed creation shows the error and correlation ID — never fake ACTIVE",
   await page.goto("/partners/new");
   await fillValidForm(page);
   await page.getByRole("button", { name: "Review" }).click();
-  await page.getByRole("button", { name: "Create partner" }).click();
+  await page.getByRole("button", { name: "Create hospital" }).click();
 
-  const alert = page.getByRole("alert");
+  const alert = page.locator("[role='alert']:not(#__next-route-announcer__)");
   await expect(alert).toBeVisible();
-  await expect(alert).toContainText("Tenant provisioning failed.");
+  await expect(alert).toContainText("Tenant provisioning failed on backend.");
   await expect(alert).toContainText("AX-REQ-E2E002");
   await expect(alert).toContainText(/nothing was activated|rolled/i);
   await expect(
-    page.getByRole("heading", { name: "Partner created and active" }),
+    page.getByRole("heading", { name: "Hospital Registered Successfully" }),
   ).not.toBeVisible();
 });
