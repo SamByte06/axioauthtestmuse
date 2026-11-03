@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { ROLE_PERMISSIONS, type AuthorityRole } from "@axio-authority/shared-types";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
  * Keeps credentials and tokens in server-side HttpOnly cookies, eliminating
  * CORS and browser exposure of upstream tokens and secrets.
  *
- * Security properties (D2, D3):
+ * Security properties (D2, D3, D5):
  * 1. Server-only config: BACKEND_API_BASE_URL is never exposed to the client bundle.
  * 2. Strict path allowlist: only /api/v1/admin/* and /api/v1/auth/* are permitted.
  * 3. Traversal protection: rejects '..', encoded dots/slashes, and absolute URLs.
@@ -21,6 +22,8 @@ export const dynamic = "force-dynamic";
  * 8. Zero body logging: request and response bodies are never logged.
  * 9. Secret stripping (D3): strips mfa_secret, mfa_qr_code_uri, and enrollment_token.
  * 10. Cache-Control: always no-store.
+ * 11. Auth exchange (D5): exchanges login credentials upstream, places JWT in HttpOnly cookie,
+ *     returns only session summary (identity, roles, permissions) to browser.
  */
 
 const ALLOWED_PATH_PREFIXES = ["/api/v1/admin/", "/api/v1/auth/"];
@@ -53,7 +56,6 @@ function getBackendBaseUrl(): string | null {
 }
 
 function validatePath(pathname: string): { valid: boolean; error?: string } {
-  // Reject directory traversal and encoded representations
   const lower = pathname.toLowerCase();
   if (
     lower.includes("..") ||
@@ -65,12 +67,10 @@ function validatePath(pathname: string): { valid: boolean; error?: string } {
     return { valid: false, error: "Path traversal sequences are strictly forbidden." };
   }
 
-  // Reject absolute URLs or schemes
   if (lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("//") || lower.includes(":")) {
     return { valid: false, error: "Absolute URLs and URI schemes are strictly forbidden." };
   }
 
-  // Must match allowed prefixes
   const isAllowed = ALLOWED_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   if (!isAllowed) {
     return { valid: false, error: `Requested path '${pathname}' is not in the allowed API proxy list.` };
@@ -82,7 +82,6 @@ function validatePath(pathname: string): { valid: boolean; error?: string } {
 function validateCsrf(request: NextRequest, method: string): boolean {
   if (method === "GET") return true;
 
-  // Custom client header check
   const hasCustomHeader =
     request.headers.has("x-correlation-id") ||
     request.headers.has("x-axio-authority-client") ||
@@ -92,7 +91,6 @@ function validateCsrf(request: NextRequest, method: string): boolean {
     return false;
   }
 
-  // Origin check
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
 
@@ -148,12 +146,190 @@ async function handleProxy(request: NextRequest, { params }: { params: { path?: 
     );
   }
 
-  // Correlation ID management
   const correlationId =
     request.headers.get("x-correlation-id") ||
     `AX-REQ-${crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
 
-  // Forwarding headers allowlist
+  const cookieName = process.env.AUTHORITY_SESSION_COOKIE_NAME || "axio_authority_session";
+  const sessionToken = request.cookies.get(cookieName)?.value;
+
+  // ---------------------------------------------------------------------------
+  // D5: Specialized Authentication Handlers (Server-Side Session Exchange)
+  // ---------------------------------------------------------------------------
+
+  // 1. Login Handler
+  if (rawPath.endsWith("/auth/login") && method === "POST") {
+    const loginPath = process.env.AUTHORITY_LOGIN_PATH?.trim() || "/api/v1/auth/login";
+    let bodyJson: any;
+    try {
+      bodyJson = await request.json();
+    } catch {
+      return NextResponse.json(
+        { code: "INVALID_JSON", message: "Invalid JSON request body." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    try {
+      const upstreamRes = await fetch(`${baseUrl}${loginPath}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Correlation-Id": correlationId,
+        },
+        body: JSON.stringify({
+          email: bodyJson.email,
+          username: bodyJson.email,
+          password: bodyJson.password,
+        }),
+        cache: "no-store",
+      });
+
+      if (!upstreamRes.ok) {
+        return NextResponse.json(
+          { code: "AUTHENTICATION_FAILED", message: "Invalid email or password." },
+          { status: upstreamRes.status, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+
+      const authData = await upstreamRes.json();
+      const token = authData.accessToken || authData.token;
+
+      // Extract roles and permissions
+      const roles: AuthorityRole[] = (authData.roles as AuthorityRole[]) || ["SUPER_AUTHORITY_ADMIN"];
+      const permissions: string[] =
+        authData.permissions ||
+        Array.from(new Set(roles.flatMap((r) => ROLE_PERMISSIONS[r] || [])));
+
+      const session = {
+        administratorId: authData.userId || authData.axioId || "admin-1",
+        displayName: authData.fullName || authData.firstName || bodyJson.email,
+        email: authData.email || bodyJson.email,
+        roles,
+        permissions,
+        expiresAt: authData.expiresAtUtc || new Date(Date.now() + 8 * 3600000).toISOString(),
+      };
+
+      const isSecure = process.env.NODE_ENV === "production";
+      const response = NextResponse.json(
+        { session },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control": "no-store",
+            "X-Correlation-Id": correlationId,
+          },
+        },
+      );
+
+      // Set HttpOnly session cookie if token is returned
+      if (token) {
+        response.cookies.set({
+          name: cookieName,
+          value: token,
+          httpOnly: true,
+          secure: isSecure,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 8 * 3600, // 8 hours
+        });
+      }
+
+      return response;
+    } catch {
+      return NextResponse.json(
+        { code: "BACKEND_UNREACHABLE", message: "Unable to reach auth backend.", correlationId },
+        { status: 502, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
+  // 2. Session / Me Handler
+  if ((rawPath.endsWith("/auth/session") || rawPath.endsWith("/auth/me")) && method === "GET") {
+    if (!sessionToken) {
+      return NextResponse.json(
+        { code: "UNAUTHENTICATED", message: "No active session." },
+        { status: 401, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    try {
+      const upstreamRes = await fetch(`${baseUrl}/api/v1/auth/me`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+          "X-Correlation-Id": correlationId,
+        },
+        cache: "no-store",
+      });
+
+      if (!upstreamRes.ok) {
+        const res = NextResponse.json(
+          { code: "SESSION_EXPIRED", message: "Session expired or invalid." },
+          { status: 401, headers: { "Cache-Control": "no-store" } },
+        );
+        res.cookies.delete(cookieName);
+        return res;
+      }
+
+      const meData = await upstreamRes.json();
+      const roles: AuthorityRole[] = (meData.roles as AuthorityRole[]) || ["SUPER_AUTHORITY_ADMIN"];
+      const permissions: string[] =
+        meData.permissions ||
+        Array.from(new Set(roles.flatMap((r) => ROLE_PERMISSIONS[r] || [])));
+
+      const session = {
+        administratorId: meData.userId || meData.axioId || meData.id || "admin-1",
+        displayName: meData.fullName || meData.firstName || meData.email || "Administrator",
+        email: meData.email || "admin@example.org",
+        roles,
+        permissions,
+        expiresAt: meData.expiresAtUtc || new Date(Date.now() + 8 * 3600000).toISOString(),
+      };
+
+      return NextResponse.json(session, {
+        status: 200,
+        headers: { "Cache-Control": "no-store", "X-Correlation-Id": correlationId },
+      });
+    } catch {
+      return NextResponse.json(
+        { code: "BACKEND_UNREACHABLE", message: "Unable to reach session backend.", correlationId },
+        { status: 502, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
+  // 3. Logout Handler
+  if (rawPath.endsWith("/auth/logout") && method === "POST") {
+    if (sessionToken) {
+      try {
+        await fetch(`${baseUrl}/api/v1/auth/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+            "X-Correlation-Id": correlationId,
+          },
+          cache: "no-store",
+        });
+      } catch {
+        // Continue clearing local cookie even if upstream fails
+      }
+    }
+
+    const response = NextResponse.json(
+      { success: true },
+      { status: 200, headers: { "Cache-Control": "no-store", "X-Correlation-Id": correlationId } },
+    );
+    response.cookies.delete(cookieName);
+    return response;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Standard Backend Forwarding
+  // ---------------------------------------------------------------------------
+
   const forwardHeaders: Record<string, string> = {
     Accept: "application/json",
     "X-Correlation-Id": correlationId,
@@ -165,14 +341,10 @@ async function handleProxy(request: NextRequest, { params }: { params: { path?: 
   const idempotencyKey = request.headers.get("idempotency-key");
   if (idempotencyKey) forwardHeaders["Idempotency-Key"] = idempotencyKey;
 
-  // Session Token attachment from HttpOnly cookie
-  const cookieName = process.env.AUTHORITY_SESSION_COOKIE_NAME || "axio_authority_session";
-  const sessionToken = request.cookies.get(cookieName)?.value;
   if (sessionToken) {
     forwardHeaders["Authorization"] = `Bearer ${sessionToken}`;
   }
 
-  // Read request body if present with size capping
   let bodyBuffer: ArrayBuffer | undefined = undefined;
   if (method !== "GET") {
     const contentLength = request.headers.get("content-length");
@@ -192,11 +364,10 @@ async function handleProxy(request: NextRequest, { params }: { params: { path?: 
         );
       }
     } catch {
-      // Body empty or failed to read
+      // Body empty or unreadable
     }
   }
 
-  // Construct target URL including query string
   const queryString = request.nextUrl.search;
   const targetUrl = `${baseUrl}${rawPath}${queryString}`;
 
@@ -219,7 +390,6 @@ async function handleProxy(request: NextRequest, { params }: { params: { path?: 
     );
   }
 
-  // Process response
   const responseContentType = backendResponse.headers.get("content-type") || "";
   const isJson = responseContentType.includes("application/json");
 
@@ -227,7 +397,6 @@ async function handleProxy(request: NextRequest, { params }: { params: { path?: 
   if (isJson) {
     try {
       const parsedJson = await backendResponse.json();
-      // Enforce D3: strip secrets before returning to browser
       responseData = stripSecretsRecursively(parsedJson);
     } catch {
       responseData = null;
@@ -240,7 +409,6 @@ async function handleProxy(request: NextRequest, { params }: { params: { path?: 
   responseHeaders.set("Cache-Control", "no-store");
   responseHeaders.set("X-Correlation-Id", correlationId);
 
-  // If upstream response sets cookies or auth, handle session cookie expiry on 401
   if (backendResponse.status === 401) {
     responseHeaders.set(
       "Set-Cookie",
