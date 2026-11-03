@@ -43,10 +43,8 @@ export default function PartnersPage() {
           >
             {p.organizationName}
           </Link>
-          {p.testFixture ? (
+          {p.testFixture && (
             <AxioBadge tone="warning" className="ml-2">TEST</AxioBadge>
-          ) : (
-            <AxioBadge tone="healthy" className="ml-2">LIVE PARTNER</AxioBadge>
           )}
         </span>
       ),
