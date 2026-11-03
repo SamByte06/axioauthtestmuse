@@ -14,28 +14,31 @@ Forbidden in this codebase:
 - tokens in `localStorage` / `sessionStorage`
 - inventing a session when the backend is unreachable
 
-## Flow
+## Architecture & Flow (BFF Pattern)
 
 ```
 Authority administrator
         │  email + password (TLS)
         ▼
-POST /api/v1/authority/auth/login
-        │  backend validates against the Authority identity store
+POST /api/backend/api/v1/auth/login (Next.js server-side route handler)
+        │  forwards credentials to BACKEND_API_BASE_URL (AUTHORITY_LOGIN_PATH)
         ▼
-Backend sets httpOnly, Secure, SameSite session cookie
-        │  (JavaScript cannot read it — XSS cannot steal it)
+ASP.NET Core backend issues JWT (accessToken) in response body
+        │
+Next.js proxy stores JWT in HttpOnly; Secure; SameSite=Lax cookie
+        │  (JavaScript never sees the JWT — immune to client-side token exfiltration)
         ▼
-Frontend calls GET /api/v1/authority/auth/session
-        │  returns AuthoritySession: identity, roles, permissions
+Proxy returns sanitized session summary: identity, roles, permissions, expiresAt
         ▼
 AuthProvider holds the session in memory (React context)
 ```
 
-- Session cookie name is configured via `AUTHORITY_SESSION_COOKIE_NAME` (defaults to `axio_authority_session`).
-- Session refresh / expiry is driven by the backend (`expiresAt`).
-- `401` from any API call → session treated as expired → redirect to `/login`.
-- Logout: `POST /api/v1/authority/auth/logout` invalidates server-side.
+- Target backend configured via server-only `BACKEND_API_BASE_URL` (never exposed to browser JavaScript).
+- Login endpoint configurable via `AUTHORITY_LOGIN_PATH` (defaults to `/api/v1/auth/login`).
+- Session cookie name configured via `AUTHORITY_SESSION_COOKIE_NAME` (defaults to `axio_authority_session`).
+- Session refresh / validation calls `GET /api/v1/auth/me` with `Authorization: Bearer <cookieToken>`.
+- `401` from any API call → clears session cookie → redirect to `/login`.
+- Logout: `POST /api/v1/auth/logout` invalidates upstream and deletes the cookie.
 
 ## Separate authorization contexts
 
@@ -47,9 +50,9 @@ only accepts Authority sessions.
 
 ## Unconfigured backend
 
-If `NEXT_PUBLIC_AUTHORITY_API_BASE_URL` is not set and demo mode is not active,
-the login page renders "Backend connection not configured" and sign-in is **disabled**.
-There is no offline sign-in bypass — by design.
+If `BACKEND_API_BASE_URL` is not set and demo mode is not active,
+the proxy returns `503 BACKEND_NOT_CONFIGURED` and the login page renders
+"Backend connection not configured". There is no offline sign-in bypass — by design.
 
 ## Demo mode boundaries
 
@@ -58,9 +61,3 @@ in uncommitted `.env.local`). It is blocked completely in production environment
 (`process.env.NODE_ENV === "production"` or `process.env.NEXT_PUBLIC_VERCEL_ENV === "production"`).
 When active, every page displays a persistent amber DEMO banner, the login form clearly states that
 credentials sign in to an in-memory fictional administrator, and no real credentials or data exist.
-
-## Failed attempts
-
-Failed sign-ins are logged by the backend (`AUTHORITY_LOGIN_FAILURE`) and
-surfaced in the audit log and security dashboard. The login UI never reveals
-whether the email or the password was wrong.
