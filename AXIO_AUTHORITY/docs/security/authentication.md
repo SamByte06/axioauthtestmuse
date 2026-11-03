@@ -9,7 +9,7 @@ no authentication decisions.
 Forbidden in this codebase:
 
 - hardcoded usernames / passwords
-- fake / demo login paths
+- fake / demo login paths in production
 - frontend-only authentication (e.g. "if password === 'admin'")
 - tokens in `localStorage` / `sessionStorage`
 - inventing a session when the backend is unreachable
@@ -32,6 +32,7 @@ Frontend calls GET /api/v1/authority/auth/session
 AuthProvider holds the session in memory (React context)
 ```
 
+- Session cookie name is configured via `AUTHORITY_SESSION_COOKIE_NAME` (defaults to `axio_authority_session`).
 - Session refresh / expiry is driven by the backend (`expiresAt`).
 - `401` from any API call → session treated as expired → redirect to `/login`.
 - Logout: `POST /api/v1/authority/auth/logout` invalidates server-side.
@@ -46,9 +47,17 @@ only accepts Authority sessions.
 
 ## Unconfigured backend
 
-If `NEXT_PUBLIC_AUTHORITY_API_BASE_URL` is not set, the login page renders
-"Backend connection not configured" and sign-in is **disabled**. There is no
-offline/demo bypass — by design.
+If `NEXT_PUBLIC_AUTHORITY_API_BASE_URL` is not set and demo mode is not active,
+the login page renders "Backend connection not configured" and sign-in is **disabled**.
+There is no offline sign-in bypass — by design.
+
+## Demo mode boundaries
+
+Demo mode is strictly an opt-in local development feature (`NEXT_PUBLIC_AUTHORITY_DEMO_MODE=true`
+in uncommitted `.env.local`). It is blocked completely in production environments
+(`process.env.NODE_ENV === "production"` or `process.env.NEXT_PUBLIC_VERCEL_ENV === "production"`).
+When active, every page displays a persistent amber DEMO banner, the login form clearly states that
+credentials sign in to an in-memory fictional administrator, and no real credentials or data exist.
 
 ## Failed attempts
 

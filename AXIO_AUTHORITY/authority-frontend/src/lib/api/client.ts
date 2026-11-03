@@ -85,13 +85,27 @@ export function isBackendConfigured(): boolean {
 
 /**
  * Demo mode: an explicitly opt-in local fixture backend.
- * Enabled ONLY via NEXT_PUBLIC_AUTHORITY_DEMO_MODE=true. Never on by
- * default. While active, apiFetch is served by the in-memory demo backend
- * (demo-backend.ts) instead of a real backend. State resets on reload;
- * nothing is real.
+ *
+ * Hardened production barrier:
+ * Next.js statically inlines `process.env.NODE_ENV` and any variable prefixed
+ * with `NEXT_PUBLIC_` at build time.
+ *
+ * To guarantee demo mode can never run in a production environment:
+ * 1. NEXT_PUBLIC_AUTHORITY_DEMO_MODE must be explicitly "true".
+ * 2. process.env.NODE_ENV must NOT be "production" (prevents standard production builds).
+ * 3. process.env.NEXT_PUBLIC_VERCEL_ENV must NOT be "production" (prevents Vercel production deployments).
+ *
+ * Because these expressions evaluate at build time via Next.js inlining, production
+ * bundlers can completely dead-code eliminate demo fixtures and mock code from production.
  */
 export function isDemoMode(): boolean {
-  return process.env.NEXT_PUBLIC_AUTHORITY_DEMO_MODE === "true";
+  if (process.env.NEXT_PUBLIC_AUTHORITY_DEMO_MODE !== "true") {
+    return false;
+  }
+  if (process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_VERCEL_ENV === "production") {
+    return false;
+  }
+  return true;
 }
 
 function newCorrelationId(): CorrelationId {

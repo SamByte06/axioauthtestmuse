@@ -9,6 +9,7 @@ import { isBackendConfigured, isDemoMode } from "@/lib/api/client";
 import { AuthorityApiError, BackendNotConfiguredError } from "@/lib/api/client";
 import { AxioButton, AxioInput, AxioErrorState } from "@/components/ui";
 import { AxioGlobe } from "@/components/shell/AxioGlobe";
+import { DemoBanner } from "@/components/shell/DemoBanner";
 
 /**
  * Authority sign-in.
@@ -40,6 +41,7 @@ export default function LoginPage() {
   if (!isBackendConfigured()) {
     return (
       <>
+        <DemoBanner />
         <main className="flex min-h-screen flex-col bg-authority-700">
           <AuthorityWordmark />
           <div className="flex flex-1 items-center justify-center px-6 py-10">
@@ -87,6 +89,7 @@ export default function LoginPage() {
 
   return (
     <>
+      <DemoBanner />
       <main className="flex min-h-screen flex-col bg-authority-700">
         <AuthorityWordmark />
         <div className="flex flex-1 items-center justify-center px-6 py-10">
@@ -102,8 +105,7 @@ export default function LoginPage() {
                 role="note"
                 className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
               >
-                Demo mode is on: any email and password signs you in as the demo
-                administrator. All data is test fixtures.
+                DEMO MODE: any credentials sign in as a fictional administrator. No real data.
               </p>
             )}
             <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
