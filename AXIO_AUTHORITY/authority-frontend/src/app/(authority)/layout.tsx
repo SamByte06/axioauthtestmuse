@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/session";
+import { DemoBanner } from "@/components/shell/DemoBanner";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { Topbar } from "@/components/shell/Topbar";
 import { AxioLoadingState, AxioErrorState } from "@/components/ui";
@@ -75,6 +76,7 @@ export default function AuthorityLayout({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-100">
+      <DemoBanner />
       <Sidebar />
       <Topbar title={titleFor(pathname)} />
       <main className="min-h-0 flex-1 overflow-y-auto p-6">

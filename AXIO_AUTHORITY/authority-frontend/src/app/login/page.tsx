@@ -9,6 +9,7 @@ import { isBackendConfigured, isDemoMode } from "@/lib/api/client";
 import { AuthorityApiError, BackendNotConfiguredError } from "@/lib/api/client";
 import { AxioButton, AxioInput, AxioErrorState } from "@/components/ui";
 import { AxioGlobe } from "@/components/shell/AxioGlobe";
+import { DemoBanner } from "@/components/shell/DemoBanner";
 
 /**
  * Authority sign-in.
@@ -40,6 +41,7 @@ export default function LoginPage() {
   if (!isBackendConfigured()) {
     return (
       <>
+        <DemoBanner />
         <main className="flex min-h-screen flex-col bg-authority-700">
           <AuthorityWordmark />
           <div className="flex flex-1 items-center justify-center px-6 py-10">
@@ -87,6 +89,7 @@ export default function LoginPage() {
 
   return (
     <>
+      <DemoBanner />
       <main className="flex min-h-screen flex-col bg-authority-700">
         <AuthorityWordmark />
         <div className="flex flex-1 items-center justify-center px-6 py-10">
@@ -98,18 +101,12 @@ export default function LoginPage() {
               Restricted to authorized AxioVital Authority personnel.
             </p>
             {isDemoMode() && (
-              <div
+              <p
                 role="note"
-                className="mt-4 rounded-md border border-emerald-400 bg-emerald-50/95 px-3 py-2.5 text-xs text-emerald-950 space-y-1 shadow-sm"
+                className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
               >
-                <div className="flex items-center gap-1.5 font-semibold text-emerald-900">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Local Environment &bull; Main Software Bridge Active
-                </div>
-                <p className="text-emerald-800 text-[11px] leading-snug">
-                  Sign in with any work email. Your real identity is displayed, and real operators from the main software (e.g. <strong>Dr. Sharma</strong>) are automatically synced.
-                </p>
-              </div>
+                DEMO MODE: any credentials sign in as a fictional administrator. No real data.
+              </p>
             )}
             <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
               <AxioInput

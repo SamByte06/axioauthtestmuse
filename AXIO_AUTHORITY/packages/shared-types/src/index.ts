@@ -162,11 +162,6 @@ export interface Operator {
   credentialState: CredentialState;
   lastActiveAt?: IsoTimestamp;
   createdAt: IsoTimestamp;
-  isRealUser?: boolean;
-  clientApp?: string;
-  clientPlatform?: string;
-  organizationName?: string;
-  userSource?: "MAIN_SOFTWARE_CLIENT" | "BACKEND_SEED" | "FIXTURE";
 }
 
 export interface CreateOperatorRequest {
