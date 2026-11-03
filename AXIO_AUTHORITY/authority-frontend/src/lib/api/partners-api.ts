@@ -6,7 +6,9 @@ import type {
   PaginatedResponse,
   Partner,
   PartnerId,
-  PartnerStatus
+  PartnerStatus,
+  RevokeSessionsRequest,
+  SessionRevocationSummary,
 } from "@axio-authority/shared-types";
 import { apiFetch } from "./client";
 
@@ -53,6 +55,13 @@ export const partnersApi = {
   suspend(partnerId: PartnerId, request: SuspendRequest) {
     return apiFetch<Partner>(
       AuthorityContracts.suspendPartner.buildPath({ partnerId }),
+      { method: "POST", body: request },
+    );
+  },
+
+  revokeSessions(partnerId: PartnerId, request: RevokeSessionsRequest) {
+    return apiFetch<SessionRevocationSummary>(
+      AuthorityContracts.revokePartnerSessions.buildPath({ partnerId }),
       { method: "POST", body: request },
     );
   },

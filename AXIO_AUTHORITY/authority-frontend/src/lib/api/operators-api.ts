@@ -2,11 +2,17 @@
 import { AuthorityContracts, type SuspendRequest } from "@axio-authority/api-contracts";
 import type {
   CreateOperatorRequest,
+  EnrollmentResponse,
   Operator,
   OperatorId,
   OperatorStatus,
   PaginatedResponse,
-  PartnerId
+  PartnerId,
+  ReactivateOperatorRequest,
+  ResetRecoveryRequest,
+  RevokeSessionsRequest,
+  SessionRevocationSummary,
+  UpdateOperatorRoleRequest,
 } from "@axio-authority/shared-types";
 import { apiFetch } from "./client";
 
@@ -55,9 +61,37 @@ export const operatorsApi = {
     );
   },
 
+  reactivate(operatorId: OperatorId, request: ReactivateOperatorRequest) {
+    return apiFetch<Operator>(
+      AuthorityContracts.reactivateOperator.buildPath({ operatorId }),
+      { method: "POST", body: request },
+    );
+  },
+
+  updateRole(operatorId: OperatorId, request: UpdateOperatorRoleRequest) {
+    return apiFetch<Operator>(
+      AuthorityContracts.updateOperatorRole.buildPath({ operatorId }),
+      { method: "PATCH", body: request },
+    );
+  },
+
   revoke(operatorId: OperatorId, request: SuspendRequest) {
     return apiFetch<Operator>(
       AuthorityContracts.revokeOperator.buildPath({ operatorId }),
+      { method: "POST", body: request },
+    );
+  },
+
+  resetCredential(operatorId: OperatorId, request: ResetRecoveryRequest) {
+    return apiFetch<EnrollmentResponse>(
+      AuthorityContracts.resetOperatorCredential.buildPath({ operatorId }),
+      { method: "POST", body: request },
+    );
+  },
+
+  revokeSessions(operatorId: OperatorId, request: RevokeSessionsRequest) {
+    return apiFetch<SessionRevocationSummary>(
+      AuthorityContracts.revokeOperatorSessions.buildPath({ operatorId }),
       { method: "POST", body: request },
     );
   },
