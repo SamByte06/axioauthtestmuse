@@ -80,6 +80,9 @@ export function Sidebar() {
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-4 text-xs">
+          {session && (
+            <span className="text-authority-200">{session.displayName}</span>
+          )}
           <button
             type="button"
             onClick={() => void logout()}

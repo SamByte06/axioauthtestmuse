@@ -2,7 +2,7 @@
  * dto.ts — Zod schemas and TypeScript types for the live ASP.NET Core admin backend.
  *
  * All request and response structures match the OpenAPI schemas discovered at
- * https://api.quantaforze.com/swagger/v1/swagger.json.
+ * the live backend OpenAPI documentation.
  *
  * CRITICAL SECURITY REQUIREMENT (D3):
  * Secrets returned by the backend (`mfa_secret`, `mfa_qr_code_uri`, and `enrollment_token`)

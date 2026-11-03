@@ -82,10 +82,11 @@ function validatePath(pathname: string): { valid: boolean; error?: string } {
 function validateCsrf(request: NextRequest, method: string): boolean {
   if (method === "GET") return true;
 
-  const hasCustomHeader =
-    request.headers.has("x-correlation-id") ||
-    request.headers.has("x-axio-authority-client") ||
-    request.headers.has("x-requested-with");
+  const hasCustomHeader = Boolean(
+    request.headers.get("x-correlation-id")?.trim() ||
+    request.headers.get("x-axio-authority-client")?.trim() ||
+    request.headers.get("x-requested-with")?.trim()
+  );
 
   if (!hasCustomHeader) {
     return false;
