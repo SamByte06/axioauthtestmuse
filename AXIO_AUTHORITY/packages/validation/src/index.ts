@@ -127,3 +127,17 @@ export const enrollmentFormSchema = z.object({
 });
 
 export type EnrollmentForm = z.infer<typeof enrollmentFormSchema>;
+
+
+export const updateOperatorRoleFormSchema = z.object({
+  type: operatorTypeSchema,
+});
+export type UpdateOperatorRoleForm = z.infer<typeof updateOperatorRoleFormSchema>;
+
+export const resetRecoveryFormSchema = z.object({
+  expiresInHours: z.coerce.number().int().min(1).max(168).default(24),
+});
+export type ResetRecoveryForm = z.infer<typeof resetRecoveryFormSchema>;
+
+export const revokeSessionsFormSchema = destructiveActionSchema;
+export type RevokeSessionsForm = z.infer<typeof revokeSessionsFormSchema>;

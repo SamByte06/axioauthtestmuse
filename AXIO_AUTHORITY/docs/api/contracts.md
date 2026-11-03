@@ -36,8 +36,9 @@ Status legend:
 | `GET /partners` | BACKEND CONTRACT REQUIRED | `authority.partner.read` |
 | `GET /partners/{partnerId}` | BACKEND CONTRACT REQUIRED | `authority.partner.read` |
 | `PATCH /partners/{partnerId}` | BACKEND CONTRACT REQUIRED | `authority.partner.update` |
-| `POST /partners/{partnerId}/activate` | BACKEND CONTRACT REQUIRED | `authority.partner.update` |
+| `POST /partners/{partnerId}/activate` | BACKEND CONTRACT REQUIRED | `authority.partner.activate` |
 | `POST /partners/{partnerId}/suspend` | BACKEND CONTRACT REQUIRED | `authority.partner.suspend` |
+| `POST /partners/{partnerId}/sessions/revoke` | BACKEND CONTRACT REQUIRED | `authority.session.revoke` |
 
 ## Tenants
 
@@ -56,7 +57,11 @@ Status legend:
 | `POST /operators` | BACKEND CONTRACT REQUIRED | `authority.operator.create` |
 | `GET /operators/{operatorId}` | BACKEND CONTRACT REQUIRED | `authority.operator.read` |
 | `POST /operators/{operatorId}/suspend` | BACKEND CONTRACT REQUIRED | `authority.operator.suspend` |
+| `POST /operators/{operatorId}/reactivate` | BACKEND CONTRACT REQUIRED | `authority.operator.activate` |
+| `PATCH /operators/{operatorId}/role` | BACKEND CONTRACT REQUIRED | `authority.operator.update` |
 | `POST /operators/{operatorId}/revoke` | BACKEND CONTRACT REQUIRED | `authority.operator.revoke` |
+| `POST /operators/{operatorId}/credential/reset` | BACKEND CONTRACT REQUIRED | `authority.credentials.enroll` |
+| `POST /operators/{operatorId}/sessions/revoke` | BACKEND CONTRACT REQUIRED | `authority.session.revoke` |
 
 ## Credentials
 
@@ -97,12 +102,7 @@ The backend publishes domain events; Authority consumes derived status via
 the API above. Relevant events:
 
 ```
-PartnerCreated · PartnerActivated · PartnerSuspended
-TenantCreated · TenantProvisioningStarted · TenantProvisioningCompleted
-· TenantProvisioningFailed
-OperatorCreated · OperatorActivated · OperatorSuspended · OperatorRevoked
-CredentialEnrollmentCreated · CredentialActivated · CredentialRevoked
-SecurityEventCreated
+PartnerCreated · PartnerActivated · PartnerSuspended · PartnerSessionsRevoked ·
+TenantProvisioned · OperatorCreated · OperatorSuspended · OperatorReactivated ·
+OperatorRoleChanged · OperatorRecoveryReset · SessionRevoked
 ```
-
-The Authority UI does not implement the event broker.
