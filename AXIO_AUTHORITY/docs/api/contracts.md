@@ -1,6 +1,6 @@
 # API Contracts
 
-Base: `{NEXT_PUBLIC_AUTHORITY_API_BASE_URL}/api/v1/authority`
+Base: `{NEXT_PUBLIC_AUTHORITY_API_BASE_URL}/api/v1/admin`
 Transport: REST over HTTPS. Auth: httpOnly session cookie (backend-issued).
 Every mutating request sends `X-Correlation-Id`.
 

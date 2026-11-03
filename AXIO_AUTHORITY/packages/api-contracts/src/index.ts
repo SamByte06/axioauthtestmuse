@@ -77,7 +77,7 @@ import type {
 
 export const AUTHORITY_API_VERSION = "v1";
 
-export const AUTHORITY_API_PREFIX = `/api/${AUTHORITY_API_VERSION}/authority`;
+export const AUTHORITY_API_PREFIX = `/api/${AUTHORITY_API_VERSION}/admin`;
 
 // ---------------------------------------------------------------------------
 

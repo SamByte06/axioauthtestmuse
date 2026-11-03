@@ -49,3 +49,4 @@ This matrix maps every requirement from the Hospital Identity & Access Managemen
 | **D-2** | Hospital directory: name, Hospital ID, status badge, admin count, employee count | **DONE** | Hospital Directory table in `dashboard/page.tsx:135-185`. Shows `name`, `id`, `status`, `adminCount`, and `employeeCount` columns. |
 | **D-3** | Action entry points: Register hospital, Provision admin, Manage users, Assign roles, Suspend access (destructive styling), View audit logs | **DONE** | Quick actions bar in `dashboard/page.tsx:107-133`. All 6 actions present with permission guards and destructive styling on "Suspend access". |
 | **D-4** | Real backend figures; no hardcoded illustrative mockup data | **DONE** | `dashboard/page.tsx` displays values directly from `dashboardApi.getSummary()` and `partnersApi.list()`. If missing, shows explicit indicator: "Not reported by backend". |
+
