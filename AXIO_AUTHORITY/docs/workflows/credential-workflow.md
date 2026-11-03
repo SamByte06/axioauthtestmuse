@@ -26,9 +26,11 @@ renders a secret field).
 |---|---|---|---|
 | List states | `GET /credentials` | `authority.credentials.read` | Filter by state / operator |
 | Create enrollment | `POST /operators/{id}/enrollment` | `authority.credentials.enroll` | Returns enrollment *reference*, not a secret |
-| Revoke | `POST /credentials/{id}/revoke` | `authority.credentials.revoke` | Terminal; reason required; audited |
+| Re-issue activation / recovery | `POST /operators/{id}/credential/reset` | `authority.credentials.enroll` | Resets activation/recovery; returns single-use reference with expiry |
+| Revoke credential | `POST /credentials/{id}/revoke` | `authority.credentials.revoke` | Terminal; reason required; audited |
+| Revoke sessions | `POST /operators/{id}/sessions/revoke` | `authority.session.revoke` | Invalidate all active tokens / sessions |
 
-Revocation goes through `AxioConfirmDialog` like every destructive action.
+Revocation and session termination go through `AxioConfirmDialog` like every destructive action.
 
 ## Future: Axio Card administration
 

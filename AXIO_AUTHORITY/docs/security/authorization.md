@@ -13,10 +13,11 @@ Platform permissions (see `ROLE_PERMISSIONS` in `packages/shared-types`):
 ```
 authority.dashboard.read
 
-authority.partner.read / .create / .update / .suspend
+authority.partner.read / .create / .update / .activate / .suspend
 authority.tenant.read / .provision / .suspend
-authority.operator.read / .create / .suspend / .revoke
+authority.operator.read / .create / .update / .activate / .suspend / .revoke
 authority.credentials.read / .enroll / .revoke
+authority.session.revoke
 authority.audit.read
 authority.security.read
 authority.integration.read / .manage
@@ -30,10 +31,10 @@ log the denial.
 
 | Role | Intended holder |
 |---|---|
-| `SUPER_AUTHORITY_ADMIN` | Platform owners; full control incl. suspend/revoke |
-| `AUTHORITY_ADMIN` | Day-to-day platform administration (no suspend/revoke of partners) |
-| `SECURITY_ADMIN` | Credential/security operations; suspend & revoke operators/credentials |
-| `PARTNER_ADMIN` | Partner onboarding; create partners/operators, enroll credentials |
+| `SUPER_AUTHORITY_ADMIN` | Platform owners; full control incl. activate/suspend/revoke & session revocation |
+| `AUTHORITY_ADMIN` | Day-to-day platform administration (incl. partner activation, operator update/activate, session revocation; no partner suspension) |
+| `SECURITY_ADMIN` | Credential/security operations; suspend & revoke operators/credentials, session revocation |
+| `PARTNER_ADMIN` | Partner onboarding; create partners/operators, update operator roles, enroll credentials |
 | `AUDITOR` | Read-only audit + security visibility |
 | `READ_ONLY_AUTHORITY` | Read-only across the console |
 
